@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Frigos">
+<meta name="theme-color" content="#0f766e">
+<title>Frigos de l'hôtel</title>
+<style>
+:root{--bg:#f2f4f7;--card:#fff;--tx:#1a1d23;--mu:#6b7280;--bd:#e1e5ea;--ac:#0f766e;--ok:#16a34a;--out:#dc2626;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1318;--card:#1a2028;--tx:#eef0f3;--mu:#9aa3af;--bd:#2b323c;--ac:#2dd4bf}}
+:root[data-theme="dark"]{--bg:#0f1318;--card:#1a2028;--tx:#eef0f3;--mu:#9aa3af;--bd:#2b323c;--ac:#2dd4bf}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+button{font-family:inherit;cursor:pointer}
+main{max-width:1200px;margin:0 auto;padding:14px 14px calc(96px + env(safe-area-inset-bottom,0px))}
+h1{font-size:22px;margin:2px 0 12px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.tab{min-height:52px;border-radius:14px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:17px;font-weight:700}
+.tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.panels{display:block}
+.panel{display:none}
+.panel.on{display:block}
+.ph{display:none;font-size:20px;font-weight:800;margin:0 0 10px}
+.sum{display:flex;gap:8px;margin-bottom:6px}
+.sum div{flex:1;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:10px;text-align:center;font-size:13px;color:var(--mu)}
+.sum b{display:block;font-size:26px;line-height:1.2}
+.g{font-size:13px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--mu);margin:16px 4px 8px;grid-column:1/-1}
+.list{display:grid;grid-template-columns:1fr;gap:8px}
+.item{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:8px 10px;min-height:62px}
+.item.ko{border-color:color-mix(in srgb,var(--out) 45%,var(--bd))}
+.item .n{flex:1;font-size:18px;line-height:1.2;overflow-wrap:anywhere}
+.ck{width:46px;height:46px;border-radius:50%;border:3px solid var(--out);background:none;color:#fff;font-size:24px;font-weight:800;flex:none;padding:0}
+.ck.on{background:var(--ok);border-color:var(--ok)}
+.q{display:flex;align-items:center;flex:none}
+.q button{width:46px;height:46px;border-radius:12px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:26px;line-height:1;padding:0}
+.q button:active,.ck:active,.tab:active{transform:scale(.94)}
+.q span{min-width:34px;text-align:center;font-weight:800;font-size:22px}
+.x{border:0;background:none;color:var(--mu);font-size:26px;width:38px;height:46px;padding:0;flex:none}
+.sr{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding:6px 0 8px;margin-bottom:4px}
+.addrow{width:100%;margin-bottom:10px;background:var(--ac)}
+.none{grid-column:1/-1;color:var(--mu);text-align:center;padding:18px}
+input{flex:1;min-width:0;min-height:50px;padding:0 14px;border-radius:14px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;-webkit-user-select:text;user-select:text}
+.btn{border:0;border-radius:14px;min-height:50px;padding:0 20px;background:var(--ac);color:#fff;font-weight:800;font-size:18px}
+.hint{font-size:13px;color:var(--mu);margin:10px 2px}
+details{margin-top:14px;background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px 14px}
+summary{font-weight:700;font-size:15px}
+details input{width:100%;margin-top:10px}
+.bar{position:fixed;left:0;right:0;bottom:0;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));background:var(--bg);border-top:1px solid var(--bd)}
+.wa{display:block;width:100%;max-width:1172px;margin:0 auto;background:#25d366;color:#073b1c;min-height:56px;font-size:18px}
+@media (min-width:700px){
+main{padding:20px 24px calc(100px + env(safe-area-inset-bottom,0px))}
+h1{font-size:26px}
+.tabs{display:none}
+.panels{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.panel{display:block;background:color-mix(in srgb,var(--card) 40%,transparent);border-radius:20px}
+.ph{display:block}
+}
+@media (min-width:1100px){.list{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>🧊 Frigos de l'hôtel</h1>
+<div class="tabs">
+<button class="tab on" data-t="bar">🍹 Frigo bar</button>
+<button class="tab" data-t="cuisine">🍳 Frigo cuisine</button>
+</div>
+<div class="panels" id="panels"></div>
+<div class="hint">✓ vert = présent · cercle rouge = à réassortir · − / + pour compter</div>
+<details>
+<summary>⚙️ Numéro WhatsApp (facultatif)</summary>
+<input id="tel" type="tel" inputmode="numeric" placeholder="ex. 33612345678">
+</details>
+</main>
+<div class="bar"><button class="btn wa" id="send">📲 Envoyer le rapport sur WhatsApp</button></div>
+<script>
+var KEY='frigos-hotel-v2';
+function mk(g,list){return list.map(function(n){return {n:n,g:g,q:0,ok:false}})}
+var S={
+bar:mk('',['Eau','Soda','Bière',"Jus d'orange",'Champagne']),
+cuisine:[].concat(
+mk('Poisson',['Saumon fumé']),
+mk('Pâtisserie',['Flan','Cannelé','Fondant','Brownie']),
+mk('Fromages',['Comté 18 mois','Saint-Môret','Brie de Meaux',"Fourme d'Ambert",'Tomme aux fleurs']),
+mk('Charcuterie',['Jambon Forêt-Noire','Spianata piccante','Pâté de canard']),
+mk('Légumes',['Salades','Tomates','Carottes'])),
+tel:''};
+var tab='bar',Q={bar:'',cuisine:''},F=[['bar','🍹 Frigo bar'],['cuisine','🍳 Frigo cuisine']];
+try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.bar&&p.cuisine)S=p}}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function norm(t){return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
+var P=document.getElementById('panels');
+P.innerHTML=F.map(function(f){return '<section class="panel" data-f="'+f[0]+'"><h2 class="ph">'+f[1]+'</h2><div class="sr"><input type="search" placeholder="🔍 Chercher ou ajouter un produit…" autocomplete="off" autocapitalize="sentences" enterkeyhint="done"></div><div class="body"></div></section>'}).join('');
+function body(f){
+var a=S[f],q=norm(Q[f]),ok=a.filter(function(i){return i.ok}).length;
+var h='<div class="sum"><div><b style="color:var(--ok)">'+ok+'</b>✓ Présents</div><div><b style="color:var(--out)">'+(a.length-ok)+'</b>À réassortir</div></div>';
+if(q&&!a.some(function(i){return norm(i.n)===q}))h+='<button class="btn addrow" data-a="1">+ Ajouter « '+esc(Q[f].trim())+' »</button>';
+h+='<div class="list">';
+var lg=null,n=0;
+a.forEach(function(i,k){
+if(q&&norm(i.n).indexOf(q)<0)return;
+n++;
+var g=i.g||'';
+if(g!==lg){if(g||lg!==null)h+='<div class="g">'+esc(g||'Autres')+'</div>';lg=g}
+h+='<div class="item'+(i.ok?'':' ko')+'"><button class="ck'+(i.ok?' on':'')+'" data-k="'+k+'" aria-label="Présent">'+(i.ok?'✓':'')+'</button><span class="n">'+esc(i.n)+'</span><div class="q"><button data-m="'+k+'" aria-label="Moins">−</button><span>'+i.q+'</span><button data-p="'+k+'" aria-label="Plus">+</button></div><button class="x" data-d="'+k+'" aria-label="Supprimer">×</button></div>';
+});
+if(!n)h+='<div class="none">Aucun résultat</div>';
+h+='</div>';
+P.querySelector('.panel[data-f="'+f+'"] .body').innerHTML=h;
+}
+function render(){
+F.forEach(function(f){body(f[0])});
+document.querySelectorAll('.panel').forEach(function(p){p.classList.toggle('on',p.dataset.f===tab)});
+document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('on',b.dataset.t===tab)});
+}
+function addItem(f){
+var v=Q[f].trim();
+if(!v||S[f].some(function(i){return norm(i.n)===norm(v)}))return;
+S[f].push({n:v.charAt(0).toUpperCase()+v.slice(1),g:'',q:0,ok:false});
+Q[f]='';P.querySelector('.panel[data-f="'+f+'"] input').value='';
+save();body(f);
+}
+P.onclick=function(e){
+var t=e.target.closest('button');if(!t)return;
+var f=t.closest('.panel').dataset.f,a=S[f],d=t.dataset,i;
+if(d.a){addItem(f);return}
+if(d.k!==undefined){i=a[+d.k];i.ok=!i.ok}
+else if(d.p!==undefined){i=a[+d.p];i.q++;i.ok=true}
+else if(d.m!==undefined){i=a[+d.m];if(i.q>0)i.q--;if(i.q===0)i.ok=false}
+else if(d.d!==undefined){a.splice(+d.d,1)}
+else return;
+save();body(f);
+};
+P.oninput=function(e){
+if(e.target.tagName!=='INPUT')return;
+var f=e.target.closest('.panel').dataset.f;Q[f]=e.target.value;body(f);
+};
+P.onkeydown=function(e){
+if(e.key==='Enter'&&e.target.tagName==='INPUT'){addItem(e.target.closest('.panel').dataset.f);e.target.blur()}
+};
+document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){tab=b.dataset.t;render()}});
+var tel=document.getElementById('tel');tel.value=S.tel||'';
+tel.onchange=function(){S.tel=tel.value.replace(/\D/g,'');save()};
+document.getElementById('send').onclick=function(){
+var d=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'});
+var t='🧊 Rapport frigos — '+d+'\n';
+F.forEach(function(g){
+var a=S[g[0]],o=a.filter(function(i){return !i.ok}),k=a.filter(function(i){return i.ok});
+t+='\n*'+g[1]+'*\n';
+if(o.length)t+='❌ À réassortir : '+o.map(function(i){return i.n}).join(', ')+'\n';
+t+='✅ OK : '+(k.length?k.map(function(i){return i.n+(i.q?' ×'+i.q:'')}).join(', '):'—')+'\n';
+});
+var n=(S.tel||'').replace(/\D/g,'');
+var a=document.createElement('a');
+a.href='https://wa.me/'+n+'?text='+encodeURIComponent(t);a.target='_blank';a.rel='noopener';
+document.body.appendChild(a);a.click();a.remove();
+};
+render();
+</script>
+</body>
+</html>
