@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Frigos">
 <meta name="theme-color" content="#0f766e">
-<title>Frigos de L’esquisse</title>
+<title>Frigos de l'hôtel</title>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--tx:#1a1d23;--mu:#6b7280;--bd:#e3e6eb;--ac:#0f766e;--ok:#16a34a;--out:#dc2626;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -19,8 +19,8 @@ body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-
 button{font-family:inherit;cursor:pointer}
 main{max-width:640px;margin:0 auto;padding:16px}
 h1{font-size:22px;margin:4px 0 12px}
-.tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.tab{padding:13px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;font-weight:700}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tab{padding:13px 4px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:15px;font-weight:700}
 .tab.on{background:var(--ac);color:#fff;border-color:var(--ac)}
 input{min-width:0;padding:12px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px}
 .s{width:100%;margin-bottom:10px}
@@ -56,6 +56,9 @@ summary{font-weight:700;font-size:15px}
 .send .btn{display:block;width:100%;text-align:left;margin-top:8px}
 .send small{display:block;font-weight:500;font-size:12px;opacity:.85;margin-top:2px}
 .wa{background:#25d366;color:#073b1c}
+.sbar{display:flex;gap:8px;margin-bottom:10px}
+.sbar .s{flex:1;width:auto;margin:0}
+select{flex:none;max-width:44%;min-width:0;padding:12px 8px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;font-family:inherit}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 @media (hover:hover){.btn:hover,.tab:hover,.q button:hover,.shop:hover{filter:brightness(.95)}.ck:hover{opacity:.8}.x:hover{color:var(--out)}summary{cursor:pointer}}
 @media (min-width:960px){
@@ -78,8 +81,10 @@ h1{font-size:28px;margin-bottom:18px}
 <div class="tabs">
 <button class="tab on" data-t="bar">🍹 Frigo bar</button>
 <button class="tab" data-t="cuisine">🍳 Frigo cuisine</button>
+<button class="tab" data-t="stock">📦 Stock</button>
 </div>
-<input class="s" id="s" type="search" placeholder="🔍 Chercher ou ajouter un produit…" autocomplete="off" autocapitalize="sentences" enterkeyhint="done">
+<div class="sbar"><input class="s" id="s" type="search" placeholder="🔍 Chercher ou ajouter un produit…" autocomplete="off" autocapitalize="sentences" enterkeyhint="done"><select id="cat" aria-label="Catégorie"></select></div>
+<input class="s" id="nc" placeholder="Nom de la nouvelle catégorie…" autocomplete="off" autocapitalize="sentences" style="display:none">
 <div id="body"></div>
 <div class="hint">✓ vert = présent · cercle rouge = à réassortir · touche le chiffre pour le taper · touche 🏪 pour changer de magasin</div>
 </div>
@@ -120,17 +125,18 @@ mkq('Légumes',[['Salades',1],['Tomates',0],['Carottes',1]])),
 shops:['Metro','La Vie Claire'],tel:''};
 try{var o=JSON.parse(localStorage.getItem('frigos-hotel-v2')||'null');if(o){S.tel=o.tel||'';if(o.shops)S.shops=o.shops}}catch(e){}
 try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.bar&&p.cuisine){S=p;if(!S.shops)S.shops=['Metro','La Vie Claire']}}}catch(e){}
-var tab='bar',Q={bar:'',cuisine:''},F=[['bar','🍹 Frigo bar'],['cuisine','🍳 Frigo cuisine']];
+if(!S.stock)S.stock=[].concat(S.bar,S.cuisine).map(function(i){return {n:i.n,g:i.g,q:0,ok:true,shop:i.shop||''}});
+var tab='bar',Q={bar:'',cuisine:'',stock:''},F=[['bar','🍹 Frigo bar'],['cuisine','🍳 Frigo cuisine'],['stock','📦 Stock']];
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function norm(t){return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
 function shopOf(i){return (i.shop&&S.shops.indexOf(i.shop)>=0)?i.shop:''}
-function toBuy(){var o=[];F.forEach(function(f){S[f[0]].forEach(function(i){if(!i.ok)o.push(i)})});return o}
+function toBuy(){var o=[],seen={};F.forEach(function(f){S[f[0]].forEach(function(i){var k=norm(i.n);if(!i.ok&&!seen[k]){seen[k]=1;o.push(i)}})});return o}
 var B=document.getElementById('body'),SI=document.getElementById('s');
 function render(){
 var a=S[tab],q=norm(Q[tab]),ok=a.filter(function(i){return i.ok}).length;
 var h='<div class="sum"><div><b style="color:var(--ok)">'+ok+'</b>✓ Présents</div><div><b style="color:var(--out)">'+(a.length-ok)+'</b>À réassortir</div></div>';
-if(q&&!a.some(function(i){return norm(i.n)===q}))h+='<button class="btn addrow" data-a="1">+ Ajouter « '+esc(Q[tab].trim())+' »</button>';
+if(q&&!a.some(function(i){return norm(i.n)===q}))h+='<button class="btn addrow" data-a="1">+ Ajouter « '+esc(Q[tab].trim())+' » · 📂 '+esc(catLabel())+'</button>';
 var lg=null,n=0;
 a.forEach(function(i,k){
 if(q&&norm(i.n).indexOf(q)<0)return;
@@ -149,11 +155,32 @@ document.getElementById('sc').innerHTML='🛒 Liste de courses<small>'+(c?c+' ar
 function renderShops(){
 document.getElementById('chips').innerHTML=S.shops.map(function(s,k){return '<span class="chip">'+esc(s)+'<button data-ds="'+k+'" aria-label="Supprimer">×</button></span>'}).join('')||'<span class="hint">Aucun magasin.</span>';
 }
+var CS=document.getElementById('cat'),NC=document.getElementById('nc');
+function cats(){var c=[];S[tab].forEach(function(i){if(i.g&&c.indexOf(i.g)<0)c.push(i.g)});return c}
+function catLabel(){return CS.value==='__new'?(NC.value.trim()||'nouvelle catégorie'):(CS.value||'Autres')}
+function renderCats(sel){
+var cur=sel!==undefined?sel:CS.value;
+CS.innerHTML=cats().map(function(c){return '<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join('')+'<option value="">Autres</option><option value="__new">➕ Nouvelle catégorie…</option>';
+CS.value=cur;
+if(CS.value!==cur)CS.value='';
+NC.style.display=CS.value==='__new'?'block':'none';
+}
+CS.onchange=function(){renderCats(CS.value);if(CS.value==='__new')NC.focus();render()};
+NC.oninput=render;
+NC.onkeydown=function(e){if(e.key==='Enter'){addItem();NC.blur()}};
 function addItem(){
-var v=Q[tab].trim();
+var v=Q[tab].trim(),g=CS.value;
 if(!v||S[tab].some(function(i){return norm(i.n)===norm(v)}))return;
-S[tab].push({n:v.charAt(0).toUpperCase()+v.slice(1),g:'',q:0,ok:false,shop:''});
-Q[tab]='';SI.value='';save();render();
+if(g==='__new'){
+g=NC.value.trim();
+if(!g){NC.focus();return}
+cats().forEach(function(c){if(norm(c)===norm(g))g=c});
+g=g.charAt(0).toUpperCase()+g.slice(1);
+}
+var it={n:v.charAt(0).toUpperCase()+v.slice(1),g:g,q:0,ok:false,shop:''},a=S[tab],at=-1;
+a.forEach(function(i,k){if((i.g||'')===g)at=k});
+if(at>=0)a.splice(at+1,0,it);else a.push(it);
+Q[tab]='';SI.value='';NC.value='';save();renderCats(g);render();
 }
 B.onclick=function(e){
 var t=e.target.closest('button');if(!t)return;
@@ -177,7 +204,7 @@ save();render();
 B.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.classList.contains('qi'))e.target.blur()});
 SI.oninput=function(){Q[tab]=SI.value;render()};
 SI.onkeydown=function(e){if(e.key==='Enter'){addItem();SI.blur()}};
-document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){tab=b.dataset.t;SI.value=Q[tab];render()}});
+document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){tab=b.dataset.t;SI.value=Q[tab];renderCats('');render()}});
 document.getElementById('chips').onclick=function(e){
 var t=e.target.closest('button');if(!t)return;
 var name=S.shops.splice(+t.dataset.ds,1)[0];
@@ -236,7 +263,7 @@ ko.forEach(function(i){t+='• '+i.n+'\n'});
 });
 wa(t.replace(/\s+$/,''));
 };
-renderShops();render();
+renderShops();renderCats('');render();
 </script>
 </body>
 </html>
