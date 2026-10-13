@@ -77,6 +77,7 @@ summary{font-weight:700;font-size:15px}
 .sbar{display:flex;gap:8px;margin-bottom:10px}
 .sbar .s{flex:1;width:auto;margin:0}
 select{flex:none;max-width:44%;min-width:0;padding:12px 8px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;font-family:inherit}
+.sync{display:block;font-size:12px;font-weight:600;color:var(--mu);margin-top:2px}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 @media (hover:hover){.btn:hover,.tab:hover,.q button:hover,.shop:hover{filter:brightness(.95)}.ck:hover{opacity:.8}.x:hover{color:var(--out)}summary{cursor:pointer}}
 @media (min-width:960px){
@@ -93,7 +94,7 @@ h1{font-size:28px;margin-bottom:18px}
 </head>
 <body>
 <main>
-<h1>🧊 Frigos de l'hôtel</h1>
+<h1>🧊 Frigos de l'hôtel <small class="sync" id="sync">💾 Sur cet appareil</small></h1>
 <div class="layout">
 <div class="colmain">
 <div class="tabs">
@@ -142,11 +143,11 @@ mkq('Charcuterie',[['Jambon Forêt-Noire',1],['Spianata piccante',1],['Pâté de
 mkq('Légumes',[['Salades',1],['Tomates',0],['Carottes',1]])),
 shops:['Metro','La Vie Claire'],tel:''};
 try{var o=JSON.parse(localStorage.getItem('frigos-hotel-v2')||'null');if(o){S.tel=o.tel||'';if(o.shops)S.shops=o.shops}}catch(e){}
-try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.bar&&p.cuisine){S=p;if(!S.shops)S.shops=['Metro','La Vie Claire']}}}catch(e){}
+try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.bar&&p.cuisine){S=p;if(!S.updated)S.updated=Date.now();if(!S.shops)S.shops=['Metro','La Vie Claire']}}}catch(e){}
 if(!S.stock)S.stock=[].concat(S.bar,S.cuisine).map(function(i){return {n:i.n,g:i.g,q:0,ok:true,shop:i.shop||''}});
 [S.bar,S.cuisine,S.stock].forEach(function(l){l.forEach(function(i){if(i.max===undefined)i.max=i.q>0?i.q:0})});
 var tab='bar',Q={bar:'',cuisine:'',stock:''},F=[['bar','🍹 Frigo bar'],['cuisine','🍳 Frigo cuisine'],['stock','📦 Stock']];
-function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function save(){S.updated=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(window.cloudSave)window.cloudSave()}
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function norm(t){return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
 function shopOf(i){return (i.shop&&S.shops.indexOf(i.shop)>=0)?i.shop:''}
@@ -292,6 +293,37 @@ if(ko.length){t+='\n❌ *À réassortir*\n';ko.forEach(function(i){t+='• '+i.n
 wa(t.replace(/\s+$/,''));
 };
 renderShops();renderCats('');render();
+</script>
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+import {getDatabase,ref,onValue,set} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+var cfg={apiKey:"AIzaSyCzChWIlP2_7EGKxVwTQqngoM3xV4IMPCo",authDomain:"hostel-stock-dealer.firebaseapp.com",databaseURL:"https://hostel-stock-dealer-default-rtdb.europe-west1.firebasedatabase.app",projectId:"hostel-stock-dealer",storageBucket:"hostel-stock-dealer.firebasestorage.app",messagingSenderId:"171257531477",appId:"1:171257531477:web:ac701178e4ecdec95398dc"};
+var el=document.getElementById('sync');
+function st(t){if(el)el.textContent=t}
+try{
+var db=getDatabase(initializeApp(cfg)),r=ref(db,'hotel/state'),ready=false,first=true;
+window.cloudSave=function(){
+if(!ready)return;
+var o=JSON.parse(JSON.stringify(window.S));delete o.tel;
+set(r,o).then(function(){st('☁️ Synchronisé')}).catch(function(){st('⚠️ Non synchronisé')});
+};
+function apply(d){
+var n={tel:window.S.tel,updated:d.updated||0,shops:d.shops||[]};
+['bar','cuisine','stock'].forEach(function(k){n[k]=d[k]||[]});
+['bar','cuisine','stock','shops'].forEach(function(k){if(!Array.isArray(n[k])){var o=n[k];n[k]=Object.keys(o).sort(function(a,b){return a-b}).map(function(i){return o[i]})}});
+window.S=n;
+try{localStorage.setItem(window.KEY,JSON.stringify(n))}catch(e){}
+window.renderShops();window.renderCats(window.CS.value);window.render();
+}
+onValue(r,function(snap){
+var d=snap.val(),lu=window.S.updated||0;
+if(!d){ready=true;first=false;window.cloudSave();return}
+var ru=d.updated||0;
+if(first){ready=true;first=false;if(ru>=lu){apply(d)}else{window.cloudSave()}st('☁️ Synchronisé');return}
+if(ru!==lu){apply(d)}
+st('☁️ Synchronisé');
+},function(){st('⚠️ Accès refusé : vérifie les règles Firebase')});
+}catch(e){st('⚠️ Hors ligne')}
 </script>
 </body>
 </html>
