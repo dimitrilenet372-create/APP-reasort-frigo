@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Frigos">
+  <meta name="theme-color" content="#0f766e">
+  <title>Frigos de l'esquisse</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="loading">
+  <main>
+    <h1>🧊 Frigos de l'esquisse <small class="sync" id="sync">⏳ Chargement…</small></h1>
+    <div class="language">
+      <label id="lang-label" for="lang">Langue</label>
+      <select id="lang">
+        <option value="fr">Français</option>
+        <option value="en">English</option>
+        <option value="es">Español</option>
+      </select>
+    </div>
+
+    <div class="layout">
+      <div class="colmain">
+        <div class="tabs">
+          <button class="tab on" data-t="bar">🍹 Frigo bar</button>
+          <button class="tab" data-t="cuisine">🍳 Frigo cuisine</button>
+          <button class="tab" data-t="stock">📦 Stock</button>
+        </div>
+        <div class="sbar">
+          <input class="s" id="s" type="search" placeholder="🔍 Chercher ou ajouter un produit…" autocomplete="off" autocapitalize="sentences" enterkeyhint="done">
+          <select id="cat" aria-label="Catégorie"></select>
+        </div>
+        <input class="s" id="nc" placeholder="Nom de la nouvelle catégorie…" autocomplete="off" autocapitalize="sentences" style="display:none">
+        <div id="body"></div>
+        <div class="hint">✓ vert = présent · cercle rouge = à réassortir · modifie le chiffre ou le maximum · 🟠 Bas = moins de la moitié · 📦 Stock = réserve séparée</div>
+      </div>
+
+      <aside class="side">
+        <details>
+          <summary>🏪 Gérer les magasins</summary>
+          <div class="chips" id="chips"></div>
+          <div class="row">
+            <input id="ns" placeholder="Nouveau magasin…" autocomplete="off">
+            <button class="btn" id="nsb">+</button>
+          </div>
+        </details>
+        <details>
+          <summary>⚙️ Numéro WhatsApp (facultatif)</summary>
+          <div class="row">
+            <input id="tel" type="tel" inputmode="numeric" placeholder="ex. 33612345678">
+          </div>
+        </details>
+        <div class="send">
+          <div class="lab">📲 Envoyer sur WhatsApp</div>
+          <button class="btn wa" id="sc"></button>
+          <button class="btn" id="si">📋 Inventaire<small>Ce qu'il y a dans les frigos</small></button>
+        </div>
+      </aside>
+    </div>
+  </main>
+  <script src="i18n/fr.js"></script>
+  <script src="i18n/en.js"></script>
+  <script src="i18n/es.js"></script>
+  <script src="app.js"></script>
+  <script type="module" src="firebase-sync.js"></script>
+</body>
+</html>
