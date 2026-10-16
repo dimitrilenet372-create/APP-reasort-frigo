@@ -250,6 +250,12 @@ function renderStockBadge(item, level) {
     translate('stockQuantity').replace('{count}', stockItem.q) + warningText + '</span>';
 }
 
+function updateActiveFridgeTab() {
+  document.querySelectorAll('.tab').forEach(function (button) {
+    button.classList.toggle('on', button.dataset.t === activeFridge);
+  });
+}
+
 // Render counts and matching products together so every product is visited once.
 function renderInventory() {
   var products = inventory[activeFridge];
@@ -319,9 +325,7 @@ function renderInventory() {
   if (!visibleProductCount) html += '<div class="none">' + translate('noResults') + '</div>';
   inventoryBody.innerHTML = html;
 
-  document.querySelectorAll('.tab').forEach(function (button) {
-    button.classList.toggle('on', button.dataset.t === activeFridge);
-  });
+  updateActiveFridgeTab();
 
   var itemsToBuy = getItemsToBuy();
   var shoppingMessage = translate('shoppingEmpty');
@@ -524,6 +528,7 @@ searchInput.onkeydown = function (event) {
 document.querySelectorAll('.tab').forEach(function (button) {
   button.onclick = function () {
     activeFridge = button.dataset.t;
+    updateActiveFridgeTab();
     searchInput.value = searchByFridge[activeFridge];
     newCategoryInput.value = '';
     renderCategories('');
