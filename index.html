@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Frigos">
 <meta name="theme-color" content="#0f766e">
-<title>Frigos de l'esquisse</title>
+<title>Frigos de l'hôtel</title>
 <style>
 :root{--bg:#f6f7f9;--card:#fff;--tx:#1a1d23;--mu:#6b7280;--bd:#e3e6eb;--ac:#0f766e;--ok:#16a34a;--out:#dc2626;--low:#f59e0b;
 box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -78,6 +78,8 @@ summary{font-weight:700;font-size:15px}
 .sbar .s{flex:1;width:auto;margin:0}
 select{flex:none;max-width:44%;min-width:0;padding:12px 8px;border-radius:12px;border:1px solid var(--bd);background:var(--card);color:var(--tx);font-size:16px;font-family:inherit}
 .sync{display:block;font-size:12px;font-weight:600;color:var(--mu);margin-top:2px}
+body.loading .layout{opacity:.35;pointer-events:none}
+.layout{transition:opacity .2s}
 :focus-visible{outline:2px solid var(--ac);outline-offset:2px}
 @media (hover:hover){.btn:hover,.tab:hover,.q button:hover,.shop:hover{filter:brightness(.95)}.ck:hover{opacity:.8}.x:hover{color:var(--out)}summary{cursor:pointer}}
 @media (min-width:960px){
@@ -92,9 +94,9 @@ h1{font-size:28px;margin-bottom:18px}
 }
 </style>
 </head>
-<body>
+<body class="loading">
 <main>
-<h1>🧊 Frigos de l'esquisse <small class="sync" id="sync">💾 Sur cet appareil</small></h1>
+<h1>🧊 Frigos de l'hôtel <small class="sync" id="sync">⏳ Chargement…</small></h1>
 <div class="layout">
 <div class="colmain">
 <div class="tabs">
@@ -143,11 +145,11 @@ mkq('Charcuterie',[['Jambon Forêt-Noire',1],['Spianata piccante',1],['Pâté de
 mkq('Légumes',[['Salades',1],['Tomates',0],['Carottes',1]])),
 shops:['Metro','La Vie Claire'],tel:''};
 try{var o=JSON.parse(localStorage.getItem('frigos-hotel-v2')||'null');if(o){S.tel=o.tel||'';if(o.shops)S.shops=o.shops}}catch(e){}
-try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.bar&&p.cuisine){S=p;if(!S.updated)S.updated=Date.now();if(!S.shops)S.shops=['Metro','La Vie Claire']}}}catch(e){}
+try{var r=localStorage.getItem(KEY);if(r){var p=JSON.parse(r);if(p&&p.bar&&p.cuisine){S=p;if(!S.shops)S.shops=['Metro','La Vie Claire']}}}catch(e){}
 if(!S.stock)S.stock=[].concat(S.bar,S.cuisine).map(function(i){return {n:i.n,g:i.g,q:0,ok:true,shop:i.shop||''}});
 [S.bar,S.cuisine,S.stock].forEach(function(l){l.forEach(function(i){if(i.max===undefined)i.max=i.q>0?i.q:0})});
 var tab='bar',Q={bar:'',cuisine:'',stock:''},F=[['bar','🍹 Frigo bar'],['cuisine','🍳 Frigo cuisine'],['stock','📦 Stock']];
-function save(){S.updated=Date.now();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(window.cloudSave)window.cloudSave()}
+function save(){S.updated=Date.now();S.dirty=true;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}if(window.cloudSave)window.cloudSave()}
 function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function norm(t){return String(t).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim()}
 function shopOf(i){return (i.shop&&S.shops.indexOf(i.shop)>=0)?i.shop:''}
@@ -293,6 +295,7 @@ if(ko.length){t+='\n❌ *À réassortir*\n';ko.forEach(function(i){t+='• '+i.n
 wa(t.replace(/\s+$/,''));
 };
 renderShops();renderCats('');render();
+setTimeout(function(){document.body.classList.remove('loading');var e=document.getElementById('sync');if(e&&e.textContent.indexOf('Chargement')>=0)e.textContent='💾 Sur cet appareil'},5000);
 </script>
 <script type="module">
 import {initializeApp} from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
@@ -304,11 +307,12 @@ try{
 var db=getDatabase(initializeApp(cfg)),r=ref(db,'hotel/state'),ready=false,first=true;
 window.cloudSave=function(){
 if(!ready)return;
-var o=JSON.parse(JSON.stringify(window.S));delete o.tel;
-set(r,o).then(function(){st('☁️ Synchronisé')}).catch(function(){st('⚠️ Non synchronisé')});
+var o=JSON.parse(JSON.stringify(window.S)),sent=window.S.updated;delete o.tel;delete o.dirty;
+st('⏳ Envoi…');
+try{set(r,o).then(function(){if(window.S.updated===sent){window.S.dirty=false;try{localStorage.setItem(window.KEY,JSON.stringify(window.S))}catch(e){}}st('☁️ Synchronisé')}).catch(function(err){st('⚠️ Non synchronisé ('+((err&&err.code)||'erreur')+')')})}catch(err){st('⚠️ Erreur : '+err.message)}
 };
 function apply(d){
-var n={tel:window.S.tel,updated:d.updated||0,shops:d.shops||[]};
+var n={tel:window.S.tel,updated:d.updated||0,dirty:false,shops:d.shops||[]};
 ['bar','cuisine','stock'].forEach(function(k){n[k]=d[k]||[]});
 ['bar','cuisine','stock','shops'].forEach(function(k){if(!Array.isArray(n[k])){var o=n[k];n[k]=Object.keys(o).sort(function(a,b){return a-b}).map(function(i){return o[i]})}});
 window.S=n;
@@ -317,13 +321,13 @@ window.renderShops();window.renderCats(window.CS.value);window.render();
 }
 onValue(r,function(snap){
 var d=snap.val(),lu=window.S.updated||0;
-if(!d){ready=true;first=false;window.cloudSave();return}
+if(!d){ready=true;first=false;window.cloudSave();document.body.classList.remove('loading');st('☁️ Synchronisé');return}
 var ru=d.updated||0;
-if(first){ready=true;first=false;if(ru>=lu){apply(d)}else{window.cloudSave()}st('☁️ Synchronisé');return}
-if(ru!==lu){apply(d)}
+if(first){ready=true;first=false;document.body.classList.remove('loading');if(window.S.dirty||lu>ru){window.cloudSave()}else{apply(d);st('☁️ Synchronisé')}return}
+if(ru!==lu&&!window.S.dirty){apply(d)}
 st('☁️ Synchronisé');
-},function(){st('⚠️ Accès refusé : vérifie les règles Firebase')});
-}catch(e){st('⚠️ Hors ligne')}
+},function(){document.body.classList.remove('loading');st('⚠️ Accès refusé : vérifie les règles Firebase')});
+}catch(e){document.body.classList.remove('loading');st('⚠️ Hors ligne')}
 </script>
 </body>
 </html>
