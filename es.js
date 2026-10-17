@@ -71,5 +71,7 @@ window.FRIGOS_I18N.es = {
   historyPresence: "{name}: {before} → {after}",
   historyShop: "{name}: tienda {before} → {after}",
   historyAdded: "Producto añadido: {name}",
-  historyDeleted: "Producto eliminado: {name}"
+  historyDeleted: "Producto eliminado: {name}",
+  themeToDark: "Activar el modo oscuro",
+  themeToLight: "Activar el modo claro"
 };

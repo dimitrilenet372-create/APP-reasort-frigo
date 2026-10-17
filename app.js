@@ -1,13 +1,7 @@
 var INVENTORY_STORAGE_KEY = 'frigos-hotel-v3';
-var LANGUAGE_STORAGE_KEY = 'frigos-language';
 var LANGUAGE_TEXTS = window.FRIGOS_I18N;
 var language = 'fr';
 var syncStatusKey = 'syncLoading';
-
-try {
-  var savedLanguage = localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  if (LANGUAGE_TEXTS[savedLanguage]) language = savedLanguage;
-} catch (error) {}
 
 function translate(key) {
   return LANGUAGE_TEXTS[language][key] || LANGUAGE_TEXTS.fr[key] || key;
@@ -888,7 +882,6 @@ function applyLanguage() {
   document.title = translate('appTitle');
   document.querySelector('h1').childNodes[0].nodeValue = translate('heading') + ' ';
   document.getElementById('history-summary').textContent = translate('historyTitle');
-  document.getElementById('lang-label').textContent = translate('language');
 
   document.querySelectorAll('.tab').forEach(function (button) {
     button.textContent = translate(button.dataset.t);
@@ -912,6 +905,7 @@ function applyLanguage() {
   renderInventory();
   renderHistory();
   setSyncStatus(syncStatusKey);
+  updateThemeToggle();
 }
 
 function setSyncStatus(key) {
@@ -919,14 +913,35 @@ function setSyncStatus(key) {
   document.getElementById('sync').textContent = translate(key);
 }
 
-var languageSelect = document.getElementById('lang');
-languageSelect.value = language;
-languageSelect.onchange = function () {
-  language = LANGUAGE_TEXTS[languageSelect.value] ? languageSelect.value : 'fr';
+function getActiveTheme() {
+  var selectedTheme = document.documentElement.getAttribute('data-theme');
+  if (selectedTheme) return selectedTheme;
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
+}
+
+function updateThemeToggle() {
+  var theme = getActiveTheme();
+  var nextThemeKey = theme === 'dark' ? 'themeToLight' : 'themeToDark';
+  var themeToggle = document.getElementById('theme-toggle');
+  var label = translate(nextThemeKey);
+
+  themeToggle.textContent = theme === 'dark' ? '☾' : '☀';
+  themeToggle.setAttribute('aria-label', label);
+  themeToggle.title = label;
+  document.querySelector('meta[name="theme-color"]').content = theme === 'dark'
+    ? '#252625'
+    : '#aebd9f';
+}
+
+document.getElementById('theme-toggle').onclick = function () {
+  var nextTheme = getActiveTheme() === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nextTheme);
   try {
-    localStorage.setItem(LANGUAGE_STORAGE_KEY, language);
+    localStorage.setItem('frigos-theme', nextTheme);
   } catch (error) {}
-  applyLanguage();
+  updateThemeToggle();
 };
 
 renderCategories('');

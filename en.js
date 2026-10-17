@@ -71,5 +71,7 @@ window.FRIGOS_I18N.en = {
   historyPresence: "{name}: {before} → {after}",
   historyShop: "{name}: store {before} → {after}",
   historyAdded: "Product added: {name}",
-  historyDeleted: "Product deleted: {name}"
+  historyDeleted: "Product deleted: {name}",
+  themeToDark: "Switch to dark mode",
+  themeToLight: "Switch to light mode"
 };

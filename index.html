@@ -13,17 +13,20 @@
   <link rel="preconnect" href="https://lesquissebarbizon.fr" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <script>
+    try {
+      var initialTheme = localStorage.getItem('frigos-theme');
+      if (initialTheme === 'light' || initialTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', initialTheme);
+      }
+    } catch (error) {}
+  </script>
 </head>
 <body class="loading">
   <main>
     <h1>Frigos de l'esquisse <small class="sync" id="sync">⏳ Chargement…</small></h1>
-    <div class="language">
-      <label id="lang-label" for="lang">Langue</label>
-      <select id="lang">
-        <option value="fr">Français</option>
-        <option value="en">English</option>
-        <option value="es">Español</option>
-      </select>
+    <div class="top-actions">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Activer le mode sombre" title="Activer le mode sombre">☀</button>
     </div>
 
     <div class="layout">
@@ -71,8 +74,6 @@
     </div>
   </main>
   <script src="fr.js"></script>
-  <script src="en.js"></script>
-  <script src="es.js"></script>
   <script src="app.js"></script>
   <script type="module" src="firebase-sync.js"></script>
 </body>

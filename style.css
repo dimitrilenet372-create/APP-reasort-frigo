@@ -136,7 +136,7 @@
       font: inherit;
     }
 
-    .language {
+    .top-actions {
       display: flex;
       align-items: center;
       justify-content: flex-end;
@@ -145,6 +145,24 @@
       color: var(--mu);
       font-size: 14px;
     }
+
+    .theme-toggle {
+      display: grid;
+      flex: none;
+      width: 44px;
+      height: 44px;
+      place-items: center;
+      padding: 0;
+      border: 1px solid var(--bd);
+      border-radius: 50%;
+      background: var(--card);
+      color: var(--low);
+      font-size: 22px;
+      line-height: 1;
+      transition: background-color .2s, border-color .2s, color .2s;
+    }
+
+    .theme-toggle:hover { border-color: var(--ac-strong); background: var(--sand); }
 
     .sbar { display: flex; gap: 8px; margin-bottom: 10px; }
     .sbar .s { flex: 1; width: auto; margin: 0; }
@@ -333,7 +351,7 @@
     :focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
 
     @media (hover: hover) {
-      .btn:hover, .tab:hover, .q button:hover, .shop:hover { filter: brightness(.95); }
+      .btn:hover, .tab:hover, .q button:hover, .shop:hover, .theme-toggle:hover { filter: brightness(.95); }
       .ck:hover { opacity: .8; }
       .x:hover { color: var(--out); }
       summary { cursor: pointer; }
