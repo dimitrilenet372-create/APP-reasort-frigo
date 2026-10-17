@@ -319,6 +319,8 @@
     .row { display: flex; gap: 8px; margin-top: 10px; }
     .row input { flex: 1; }
     .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .side-tools { display: grid; gap: 6px; }
+    .side-tools details { margin-top: 0; }
 
     .history .btn { width: 100%; margin-top: 10px; }
     .history .btn:disabled { cursor: not-allowed; opacity: .55; }
@@ -369,8 +371,18 @@
       main { max-width: 1180px; padding: 28px 32px; }
       h1 { margin-bottom: 18px; font-size: 28px; }
       .layout { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 32px; align-items: start; }
-      .side { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow: auto; }
-      .side details:first-child { margin-top: 0; }
+      .side {
+        display: flex;
+        flex-direction: column;
+        position: sticky;
+        top: 20px;
+        max-height: calc(100vh - 40px);
+        overflow: auto;
+      }
+      .side-tools { display: contents; }
+      .side-tools .history { order: 0; margin-top: 0; }
+      .side-tools > details:not(.history) { order: 1; }
+      .side > .send { order: 2; }
       .send { margin-top: 12px; }
       .item { padding: 10px 14px; }
       .n { font-size: 18px; }
