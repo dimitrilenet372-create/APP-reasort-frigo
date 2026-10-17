@@ -122,13 +122,21 @@ var fridgeTabs = [['bar'], ['cuisine'], ['stock']];
 var fridgeOrderStorageKey = 'frigos-fridge-order';
 var fridgeOrder = ['bar', 'cuisine', 'stock'];
 var tabContainer = document.querySelector('.tabs');
+
+function isValidFridgeOrder(order) {
+  return Array.isArray(order) && order.length === fridgeOrder.length &&
+    fridgeOrder.every(function (fridgeKey) { return order.indexOf(fridgeKey) >= 0; });
+}
+
 try {
   var savedFridgeOrder = JSON.parse(localStorage.getItem(fridgeOrderStorageKey) || 'null');
-  if (Array.isArray(savedFridgeOrder) && savedFridgeOrder.length === fridgeOrder.length &&
-      fridgeOrder.every(function (fridgeKey) { return savedFridgeOrder.indexOf(fridgeKey) >= 0; })) {
-    fridgeOrder = savedFridgeOrder;
+  if (isValidFridgeOrder(savedFridgeOrder)) {
+    fridgeOrder = savedFridgeOrder.slice();
+  } else if (isValidFridgeOrder(inventory.fridgeOrder)) {
+    fridgeOrder = inventory.fridgeOrder.slice();
   }
 } catch (error) {}
+inventory.fridgeOrder = fridgeOrder.slice();
 
 var inventoryBody = document.getElementById('body');
 var searchInput = document.getElementById('s');
@@ -396,10 +404,25 @@ function renderFridgeOrder() {
 }
 
 function saveFridgeOrder() {
+  inventory.fridgeOrder = fridgeOrder.slice();
+  saveInventory();
   try {
     localStorage.setItem(fridgeOrderStorageKey, JSON.stringify(fridgeOrder));
   } catch (error) {}
 }
+
+function applyRemoteFridgeOrder(order) {
+  if (!isValidFridgeOrder(order)) return;
+  fridgeOrder = order.slice();
+  inventory.fridgeOrder = fridgeOrder.slice();
+  renderFridgeOrder();
+  try {
+    localStorage.setItem(fridgeOrderStorageKey, JSON.stringify(fridgeOrder));
+  } catch (error) {}
+}
+
+window.isValidFridgeOrder = isValidFridgeOrder;
+window.applyRemoteFridgeOrder = applyRemoteFridgeOrder;
 
 function reorderFridgeTab(sourceKey, targetKey) {
   var sourceIndex = fridgeOrder.indexOf(sourceKey);
