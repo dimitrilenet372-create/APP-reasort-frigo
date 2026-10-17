@@ -27,8 +27,6 @@ window.FRIGOS_I18N.fr = {
   syncOffline: "💾 Sur cet appareil",
   syncError: "⚠️ Erreur de synchronisation",
   newShop: "Nouveau magasin…",
-  whatsappSettings: "⚙️ Numéro WhatsApp (facultatif)",
-  phonePlaceholder: "ex. 33612345678",
   send: "📲 Envoyer sur WhatsApp",
   inventoryButton: "📋 Inventaire",
   inventoryDescription: "Ce qu'il y a dans les frigos",

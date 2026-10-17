@@ -36,7 +36,6 @@ function normalizeList(value) {
 }
 
 function applyRemoteInventory(remoteData) {
-  var localPhone = window.inventory.tel;
   var hasRemoteStock = remoteData.stock !== undefined && remoteData.stock !== null;
   var needsLimitMigration = Number(remoteData.stockLimitVersion) < 2;
   var updatedInventory = {
@@ -45,7 +44,6 @@ function applyRemoteInventory(remoteData) {
     stock: hasRemoteStock ? normalizeList(remoteData.stock) : [],
     shops: normalizeList(remoteData.shops),
     history: normalizeList(remoteData.history),
-    tel: localPhone || '',
     updated: remoteData.updated || 0,
     stockLimitVersion: Number(remoteData.stockLimitVersion) || 0,
     dirty: false
@@ -91,7 +89,6 @@ function saveRemoteInventory() {
 
   var payload = JSON.parse(JSON.stringify(window.inventory));
   var sentAt = window.inventory.updated;
-  delete payload.tel;
   delete payload.dirty;
   setStatus('syncSaving');
 

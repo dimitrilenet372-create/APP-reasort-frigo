@@ -64,8 +64,7 @@ var inventory = {
   ),
   stock: null,
   shops: ['Metro', 'La Vie Claire'],
-  history: [],
-  tel: ''
+  history: []
 };
 
 // Read the previous storage key first, then let the current version take priority.
@@ -74,8 +73,14 @@ try {
     localStorage.getItem('frigos-hotel-v2') || 'null'
   );
   if (legacyInventory) {
-    inventory.tel = legacyInventory.tel || '';
+    var legacyHadPhone = legacyInventory.tel !== undefined;
+    delete legacyInventory.tel;
     if (legacyInventory.shops) inventory.shops = legacyInventory.shops;
+    if (legacyHadPhone) {
+      try {
+        localStorage.setItem('frigos-hotel-v2', JSON.stringify(legacyInventory));
+      } catch (error) {}
+    }
   }
 } catch (error) {}
 
@@ -89,6 +94,13 @@ try {
   }
 } catch (error) {}
 
+var savedPhoneNumber = inventory.tel !== undefined;
+delete inventory.tel;
+if (savedPhoneNumber) {
+  try {
+    localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory));
+  } catch (error) {}
+}
 if (!Array.isArray(inventory.history)) inventory.history = [];
 
 // Create a separate, initially unfilled stock inventory when upgrading old saves.
@@ -761,13 +773,6 @@ document.getElementById('ns').onkeydown = function (event) {
   if (event.key === 'Enter') addShop();
 };
 
-var phoneInput = document.getElementById('tel');
-phoneInput.value = inventory.tel || '';
-phoneInput.onchange = function () {
-  inventory.tel = phoneInput.value.replace(/\D/g, '');
-  saveInventory();
-};
-
 function formatDate() {
   return new Date().toLocaleDateString(translate('locale'), {
     weekday: 'long',
@@ -777,9 +782,8 @@ function formatDate() {
 }
 
 function openWhatsApp(message) {
-  var phoneNumber = (inventory.tel || '').replace(/\D/g, '');
   var link = document.createElement('a');
-  link.href = 'https://wa.me/' + phoneNumber + '?text=' + encodeURIComponent(message);
+  link.href = 'https://wa.me/?text=' + encodeURIComponent(message);
   link.target = '_blank';
   link.rel = 'noopener';
   document.body.appendChild(link);
@@ -893,9 +897,7 @@ function applyLanguage() {
   newCategoryInput.placeholder = translate('newCategoryPlaceholder');
 
   document.getElementById('shops-summary').textContent = translate('shops');
-  document.getElementById('whatsapp-summary').textContent = translate('whatsappSettings');
   document.getElementById('ns').placeholder = translate('newShop');
-  phoneInput.placeholder = translate('phonePlaceholder');
   document.querySelector('.send .lab').textContent = translate('send');
   document.getElementById('si').innerHTML = translate('inventoryButton') +
     '<small>' + translate('inventoryDescription') + '</small>';

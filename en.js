@@ -27,8 +27,6 @@ window.FRIGOS_I18N.en = {
   syncOffline: "💾 On this device",
   syncError: "⚠️ Sync error",
   newShop: "New store…",
-  whatsappSettings: "⚙️ WhatsApp number (optional)",
-  phonePlaceholder: "e.g. 33612345678",
   send: "📲 Send with WhatsApp",
   inventoryButton: "📋 Inventory",
   inventoryDescription: "What's in the fridges",

@@ -27,8 +27,6 @@ window.FRIGOS_I18N.es = {
   syncOffline: "💾 En este dispositivo",
   syncError: "⚠️ Error de sincronización",
   newShop: "Nueva tienda…",
-  whatsappSettings: "⚙️ Número de WhatsApp (opcional)",
-  phonePlaceholder: "p. ej. 34612345678",
   send: "📲 Enviar por WhatsApp",
   inventoryButton: "📋 Inventario",
   inventoryDescription: "Lo que hay en las neveras",
