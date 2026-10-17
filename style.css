@@ -1,3 +1,19 @@
+    @font-face {
+      font-family: 'Claro';
+      src: url('https://lesquissebarbizon.fr/wp-content/themes/lesquisse/fonts/Claro/Claro-Light.woff2') format('woff2');
+      font-style: normal;
+      font-weight: 300;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'Claro';
+      src: url('https://lesquissebarbizon.fr/wp-content/themes/lesquisse/fonts/Claro/Claro-Regular.woff2') format('woff2');
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+    }
+
     /* Theme tokens and device-safe spacing. */
     :root {
       --bg: #f9f9f9;
@@ -76,9 +92,9 @@
     h1 {
       margin: 4px 0 12px;
       color: var(--tx);
-      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-family: 'Claro', Georgia, serif;
       font-size: 30px;
-      font-weight: 500;
+      font-weight: 300;
       line-height: 1.05;
     }
 
