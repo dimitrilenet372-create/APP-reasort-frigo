@@ -120,6 +120,11 @@ try {
 
   onValue(databaseRef, function (snapshot) {
     var remoteData = snapshot.val();
+    if (remoteData && window.isValidFridgeOrder(remoteData.fridgeOrder) &&
+        JSON.stringify(remoteData.fridgeOrder) !== JSON.stringify(window.inventory.fridgeOrder)) {
+      window.applyRemoteFridgeOrder(remoteData.fridgeOrder);
+    }
+
     var localUpdated = window.inventory.updated || 0;
     var remoteUpdated = remoteData && remoteData.updated ? remoteData.updated : 0;
 
