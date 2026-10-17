@@ -1,7 +1,7 @@
 window.FRIGOS_I18N = window.FRIGOS_I18N || {};
 window.FRIGOS_I18N.en = {
   appTitle: "Hotel Fridges",
-  heading: "🧊 Hotel Fridges",
+  heading: "Hotel Fridges",
   language: "Language",
   bar: "🍹 Bar fridge",
   cuisine: "🍳 Kitchen fridge",
@@ -61,5 +61,15 @@ window.FRIGOS_I18N.en = {
   inventoryStats: "{ok} OK · {low} low · {out} to restock",
   inStock: "✅ *In stock*",
   toRestock: "❌ *To restock*",
-  locale: "en-GB"
+  locale: "en-GB",
+  historyTitle: "🕘 History",
+  historyUndo: "↶ Undo latest change",
+  historyEmpty: "No recent changes.",
+  historyUndone: "Undone",
+  historyQuantity: "{name}: quantity {before} → {after}",
+  historyMaximum: "{name}: maximum {before} → {after}",
+  historyPresence: "{name}: {before} → {after}",
+  historyShop: "{name}: store {before} → {after}",
+  historyAdded: "Product added: {name}",
+  historyDeleted: "Product deleted: {name}"
 };

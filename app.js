@@ -70,6 +70,7 @@ var inventory = {
   ),
   stock: null,
   shops: ['Metro', 'La Vie Claire'],
+  history: [],
   tel: ''
 };
 
@@ -93,6 +94,8 @@ try {
     if (!inventory.shops) inventory.shops = ['Metro', 'La Vie Claire'];
   }
 } catch (error) {}
+
+if (!Array.isArray(inventory.history)) inventory.history = [];
 
 // Create a separate, initially unfilled stock inventory when upgrading old saves.
 if (!Array.isArray(inventory.stock)) {
@@ -127,6 +130,118 @@ function saveInventory(localOnly) {
   } catch (error) {}
   if (!localOnly && window.cloudSave) window.cloudSave();
 }
+
+function recordHistory(entry) {
+  entry.at = Date.now();
+  entry.undone = false;
+  inventory.history.push(entry);
+  if (inventory.history.length > 50) inventory.history.shift();
+  renderHistory();
+}
+
+function formatHistoryEntry(entry) {
+  var name = escapeHtml(entry.itemName || (entry.item && entry.item.n) || '');
+  var description;
+
+  if (entry.type === 'quantity') {
+    description = translate('historyQuantity')
+      .replace('{name}', name)
+      .replace('{before}', entry.before)
+      .replace('{after}', entry.after);
+  } else if (entry.type === 'maximum') {
+    description = translate('historyMaximum')
+      .replace('{name}', name)
+      .replace('{before}', entry.before)
+      .replace('{after}', entry.after);
+  } else if (entry.type === 'presence') {
+    description = translate('historyPresence')
+      .replace('{name}', name)
+      .replace('{before}', translate(entry.before ? 'present' : 'restock'))
+      .replace('{after}', translate(entry.after ? 'present' : 'restock'));
+  } else if (entry.type === 'shop') {
+    description = translate('historyShop')
+      .replace('{name}', name)
+      .replace('{before}', escapeHtml(entry.before || translate('storeUnknown')))
+      .replace('{after}', escapeHtml(entry.after || translate('storeUnknown')));
+  } else if (entry.type === 'add') {
+    description = translate('historyAdded').replace('{name}', name);
+  } else {
+    description = translate('historyDeleted').replace('{name}', name);
+  }
+
+  return description;
+}
+
+function renderHistory() {
+  var historyList = document.getElementById('history-list');
+  var undoButton = document.getElementById('undo-history');
+  if (!historyList || !undoButton) return;
+
+  var recentEntries = inventory.history.slice(-20).reverse();
+  historyList.innerHTML = recentEntries.map(function (entry) {
+    var time = new Date(entry.at).toLocaleTimeString(translate('locale'), {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    var state = entry.undone
+      ? '<small>' + translate('historyUndone') + '</small>'
+      : '';
+    return '<li class="history-item' + (entry.undone ? ' undone' : '') + '"><span>' +
+      formatHistoryEntry(entry) + '</span><small>' + escapeHtml(translate(entry.fridge)) +
+      ' · ' + time + '</small>' + state + '</li>';
+  }).join('') || '<li class="history-empty">' + translate('historyEmpty') + '</li>';
+
+  undoButton.textContent = translate('historyUndo');
+  undoButton.disabled = !inventory.history.some(function (entry) { return !entry.undone; });
+}
+
+function findHistoryItemIndex(entry) {
+  return inventory[entry.fridge].findIndex(function (item) {
+    return item.n === entry.itemName && (item.g || '') === (entry.group || '');
+  });
+}
+
+function undoLatestChange() {
+  var entry = null;
+  for (var index = inventory.history.length - 1; index >= 0; index--) {
+    if (!inventory.history[index].undone) {
+      entry = inventory.history[index];
+      break;
+    }
+  }
+  if (!entry) return;
+
+  var productList = inventory[entry.fridge];
+  var itemIndex = findHistoryItemIndex(entry);
+  if (entry.type === 'add' && itemIndex >= 0) {
+    productList.splice(itemIndex, 1);
+  } else if (entry.type === 'delete' && itemIndex < 0) {
+    productList.splice(Math.min(entry.index, productList.length), 0, entry.item);
+  } else if (itemIndex >= 0) {
+    var item = productList[itemIndex];
+    if (entry.type === 'quantity') {
+      item.q = entry.before;
+      item.ok = entry.beforeOk;
+    } else if (entry.type === 'maximum') {
+      item.max = entry.before;
+    } else if (entry.type === 'presence') {
+      item.ok = entry.before;
+    } else if (entry.type === 'shop') {
+      item.shop = entry.before;
+    }
+  } else {
+    return;
+  }
+
+  entry.undone = true;
+  saveInventory();
+  renderCategories();
+  renderInventory();
+  renderHistory();
+}
+
+window.renderHistory = renderHistory;
+document.getElementById('undo-history').onclick = undoLatestChange;
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>\"]/g, function (character) {
@@ -430,6 +545,14 @@ function addItem() {
     if ((existingItem.g || '') === group) lastItemInGroup = index;
   });
   productList.splice(lastItemInGroup + 1, 0, item);
+  recordHistory({
+    type: 'add',
+    fridge: activeFridge,
+    itemName: item.n,
+    group: item.g || '',
+    index: lastItemInGroup + 1,
+    item: JSON.parse(JSON.stringify(item))
+  });
 
   searchByFridge[activeFridge] = '';
   searchInput.value = '';
@@ -455,23 +578,60 @@ inventoryBody.onclick = function (event) {
 
   if (action.k !== undefined) {
     item = productList[Number(action.k)];
+    var previousPresence = item.ok;
     item.ok = !item.ok;
+    recordHistory({
+      type: 'presence', fridge: activeFridge, itemName: item.n,
+      group: item.g || '', before: previousPresence, after: item.ok
+    });
   } else if (action.p !== undefined) {
     item = productList[Number(action.p)];
+    var previousPlusQuantity = item.q;
+    var previousPlusPresence = item.ok;
     item.q = Math.min(item.q + 1, 9999);
     item.ok = item.q > 0;
+    if (item.q !== previousPlusQuantity) {
+      recordHistory({
+        type: 'quantity', fridge: activeFridge, itemName: item.n,
+        group: item.g || '', before: previousPlusQuantity, after: item.q,
+        beforeOk: previousPlusPresence
+      });
+    }
   } else if (action.m !== undefined) {
     item = productList[Number(action.m)];
+    var previousMinusQuantity = item.q;
+    var previousMinusPresence = item.ok;
     if (item.q > 0) item.q--;
     if (item.q === 0) item.ok = false;
+    if (item.q !== previousMinusQuantity) {
+      recordHistory({
+        type: 'quantity', fridge: activeFridge, itemName: item.n,
+        group: item.g || '', before: previousMinusQuantity, after: item.q,
+        beforeOk: previousMinusPresence
+      });
+    }
   } else if (action.s !== undefined) {
     item = productList[Number(action.s)];
+    var previousShop = item.shop || '';
     var currentShopIndex = inventory.shops.indexOf(getItemShop(item));
     item.shop = currentShopIndex + 1 < inventory.shops.length
       ? inventory.shops[currentShopIndex + 1]
       : '';
+    if (item.shop !== previousShop) {
+      recordHistory({
+        type: 'shop', fridge: activeFridge, itemName: item.n,
+        group: item.g || '', before: previousShop, after: item.shop
+      });
+    }
   } else if (action.d !== undefined) {
-    productList.splice(Number(action.d), 1);
+    var deletedIndex = Number(action.d);
+    item = productList[deletedIndex];
+    productList.splice(deletedIndex, 1);
+    recordHistory({
+      type: 'delete', fridge: activeFridge, itemName: item.n,
+      group: item.g || '', index: deletedIndex,
+      item: JSON.parse(JSON.stringify(item))
+    });
   } else {
     return;
   }
@@ -482,6 +642,10 @@ inventoryBody.onclick = function (event) {
 
 inventoryBody.addEventListener('focusin', function (event) {
   if (event.target.classList.contains('qi') || event.target.classList.contains('mx')) {
+    var item = inventory[activeFridge][Number(event.target.dataset.i)];
+    var isMaximum = event.target.classList.contains('mx');
+    event.target.dataset.historyBefore = isMaximum ? item.max : item.q;
+    event.target.dataset.historyBeforeOk = item.ok;
     event.target.select();
   }
 });
@@ -513,6 +677,23 @@ inventoryBody.addEventListener('input', function (event) {
 
 inventoryBody.addEventListener('change', function (event) {
   if (!updateQuantityInput(event)) return;
+
+  var isMaximum = event.target.classList.contains('mx');
+  var item = inventory[activeFridge][Number(event.target.dataset.i)];
+  var previousValue = Number(event.target.dataset.historyBefore);
+  var currentValue = isMaximum ? item.max : item.q;
+  if (!isFinite(previousValue)) previousValue = currentValue;
+  if (previousValue !== currentValue) {
+    recordHistory({
+      type: isMaximum ? 'maximum' : 'quantity',
+      fridge: activeFridge,
+      itemName: item.n,
+      group: item.g || '',
+      before: previousValue,
+      after: currentValue,
+      beforeOk: event.target.dataset.historyBeforeOk === 'true'
+    });
+  }
 
   saveInventory();
   renderInventory();
@@ -706,6 +887,7 @@ function applyLanguage() {
   document.documentElement.lang = language;
   document.title = translate('appTitle');
   document.querySelector('h1').childNodes[0].nodeValue = translate('heading') + ' ';
+  document.getElementById('history-summary').textContent = translate('historyTitle');
   document.getElementById('lang-label').textContent = translate('language');
 
   document.querySelectorAll('.tab').forEach(function (button) {
@@ -717,9 +899,8 @@ function applyLanguage() {
   categorySelect.setAttribute('aria-label', translate('category'));
   newCategoryInput.placeholder = translate('newCategoryPlaceholder');
 
-  var summaries = document.querySelectorAll('.side details summary');
-  summaries[0].textContent = translate('shops');
-  summaries[1].textContent = translate('whatsappSettings');
+  document.getElementById('shops-summary').textContent = translate('shops');
+  document.getElementById('whatsapp-summary').textContent = translate('whatsappSettings');
   document.getElementById('ns').placeholder = translate('newShop');
   phoneInput.placeholder = translate('phonePlaceholder');
   document.querySelector('.send .lab').textContent = translate('send');
@@ -729,6 +910,7 @@ function applyLanguage() {
   renderShops();
   renderCategories();
   renderInventory();
+  renderHistory();
   setSyncStatus(syncStatusKey);
 }
 

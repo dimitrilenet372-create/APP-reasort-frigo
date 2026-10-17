@@ -44,6 +44,7 @@ function applyRemoteInventory(remoteData) {
     cuisine: normalizeList(remoteData.cuisine),
     stock: hasRemoteStock ? normalizeList(remoteData.stock) : [],
     shops: normalizeList(remoteData.shops),
+    history: normalizeList(remoteData.history),
     tel: localPhone || '',
     updated: remoteData.updated || 0,
     stockLimitVersion: Number(remoteData.stockLimitVersion) || 0,
@@ -82,6 +83,7 @@ function applyRemoteInventory(remoteData) {
   window.renderShops();
   window.renderCategories('');
   window.renderInventory();
+  window.renderHistory();
 }
 
 function saveRemoteInventory() {

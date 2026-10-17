@@ -1,7 +1,7 @@
 window.FRIGOS_I18N = window.FRIGOS_I18N || {};
 window.FRIGOS_I18N.es = {
   appTitle: "Neveras del hotel",
-  heading: "🧊 Neveras del hotel",
+  heading: "Neveras del hotel",
   language: "Idioma",
   bar: "🍹 Nevera del bar",
   cuisine: "🍳 Nevera de cocina",
@@ -61,5 +61,15 @@ window.FRIGOS_I18N.es = {
   inventoryStats: "{ok} OK · {low} bajo · {out} por reponer",
   inStock: "✅ *Disponibles*",
   toRestock: "❌ *Por reponer*",
-  locale: "es-ES"
+  locale: "es-ES",
+  historyTitle: "🕘 Historial",
+  historyUndo: "↶ Deshacer el último cambio",
+  historyEmpty: "No hay cambios recientes.",
+  historyUndone: "Deshecho",
+  historyQuantity: "{name}: cantidad {before} → {after}",
+  historyMaximum: "{name}: máximo {before} → {after}",
+  historyPresence: "{name}: {before} → {after}",
+  historyShop: "{name}: tienda {before} → {after}",
+  historyAdded: "Producto añadido: {name}",
+  historyDeleted: "Producto eliminado: {name}"
 };

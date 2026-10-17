@@ -1,7 +1,7 @@
 window.FRIGOS_I18N = window.FRIGOS_I18N || {};
 window.FRIGOS_I18N.fr = {
   appTitle: "Frigos de l'esquisse",
-  heading: "🧊 Frigos l'esquisse",
+  heading: "Frigos de l'esquisse",
   language: "Langue",
   bar: "🍹 Frigo bar",
   cuisine: "🍳 Frigo cuisine",
@@ -61,5 +61,15 @@ window.FRIGOS_I18N.fr = {
   inventoryStats: "{ok} OK · {low} bas · {out} à réassortir",
   inStock: "✅ *En stock*",
   toRestock: "❌ *À réassortir*",
-  locale: "fr-FR"
+  locale: "fr-FR",
+  historyTitle: "🕘 Historique",
+  historyUndo: "↶ Annuler la dernière modification",
+  historyEmpty: "Aucune modification récente.",
+  historyUndone: "Annulée",
+  historyQuantity: "{name} : quantité {before} → {after}",
+  historyMaximum: "{name} : maximum {before} → {after}",
+  historyPresence: "{name} : {before} → {after}",
+  historyShop: "{name} : magasin {before} → {after}",
+  historyAdded: "Produit ajouté : {name}",
+  historyDeleted: "Produit supprimé : {name}"
 };

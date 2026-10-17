@@ -6,13 +6,16 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Frigos">
-  <meta name="theme-color" content="#0f766e">
+  <meta name="theme-color" content="#aebd9f">
   <title>Frigos de l'esquisse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600;700&family=Cormorant+Garamond:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="loading">
   <main>
-    <h1>🧊 Frigos de l'esquisse <small class="sync" id="sync">⏳ Chargement…</small></h1>
+    <h1>Frigos de l'esquisse <small class="sync" id="sync">⏳ Chargement…</small></h1>
     <div class="language">
       <label id="lang-label" for="lang">Langue</label>
       <select id="lang">
@@ -39,8 +42,13 @@
       </div>
 
       <aside class="side">
+        <details class="history">
+          <summary id="history-summary">🕘 Historique</summary>
+          <button class="btn" id="undo-history" type="button">↶ Annuler la dernière modification</button>
+          <ol class="history-list" id="history-list"></ol>
+        </details>
         <details>
-          <summary>🏪 Gérer les magasins</summary>
+          <summary id="shops-summary">🏪 Gérer les magasins</summary>
           <div class="chips" id="chips"></div>
           <div class="row">
             <input id="ns" placeholder="Nouveau magasin…" autocomplete="off">
@@ -48,7 +56,7 @@
           </div>
         </details>
         <details>
-          <summary>⚙️ Numéro WhatsApp (facultatif)</summary>
+          <summary id="whatsapp-summary">⚙️ Numéro WhatsApp (facultatif)</summary>
           <div class="row">
             <input id="tel" type="tel" inputmode="numeric" placeholder="ex. 33612345678">
           </div>
