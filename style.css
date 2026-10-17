@@ -113,9 +113,16 @@
       color: var(--tx);
       font-size: 15px;
       font-weight: 700;
+      cursor: grab;
+      touch-action: pan-y;
+      user-select: none;
+      transition: opacity .15s, outline-color .15s;
     }
 
     .tab.on { border-color: var(--ac-strong); background: var(--ac); color: var(--tx); }
+    .tab.dragging { opacity: .55; cursor: grabbing; }
+    .tab.drop-target { outline: 2px dashed var(--ac-strong); outline-offset: 2px; }
+    .tabs.is-dragging { user-select: none; }
 
     input {
       min-width: 0;

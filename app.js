@@ -119,6 +119,17 @@ if (!Array.isArray(inventory.stock)) {
 var activeFridge = 'bar';
 var searchByFridge = { bar: '', cuisine: '', stock: '' };
 var fridgeTabs = [['bar'], ['cuisine'], ['stock']];
+var fridgeOrderStorageKey = 'frigos-fridge-order';
+var fridgeOrder = ['bar', 'cuisine', 'stock'];
+var tabContainer = document.querySelector('.tabs');
+try {
+  var savedFridgeOrder = JSON.parse(localStorage.getItem(fridgeOrderStorageKey) || 'null');
+  if (Array.isArray(savedFridgeOrder) && savedFridgeOrder.length === fridgeOrder.length &&
+      fridgeOrder.every(function (fridgeKey) { return savedFridgeOrder.indexOf(fridgeKey) >= 0; })) {
+    fridgeOrder = savedFridgeOrder;
+  }
+} catch (error) {}
+
 var inventoryBody = document.getElementById('body');
 var searchInput = document.getElementById('s');
 var categorySelect = document.getElementById('cat');
@@ -376,6 +387,45 @@ function updateActiveFridgeTab() {
     button.classList.toggle('on', button.dataset.t === activeFridge);
   });
 }
+
+function renderFridgeOrder() {
+  fridgeOrder.forEach(function (fridgeKey) {
+    var button = tabContainer.querySelector('[data-t="' + fridgeKey + '"]');
+    if (button) tabContainer.appendChild(button);
+  });
+}
+
+function saveFridgeOrder() {
+  try {
+    localStorage.setItem(fridgeOrderStorageKey, JSON.stringify(fridgeOrder));
+  } catch (error) {}
+}
+
+function reorderFridgeTab(sourceKey, targetKey) {
+  var sourceIndex = fridgeOrder.indexOf(sourceKey);
+  var targetIndex = fridgeOrder.indexOf(targetKey);
+  if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
+
+  var insertAfterTarget = sourceIndex < targetIndex;
+  fridgeOrder.splice(sourceIndex, 1);
+  targetIndex = fridgeOrder.indexOf(targetKey) + (insertAfterTarget ? 1 : 0);
+  fridgeOrder.splice(targetIndex, 0, sourceKey);
+  renderFridgeOrder();
+  saveFridgeOrder();
+}
+
+function moveFridgeTabToIndex(fridgeKey, targetIndex) {
+  var currentIndex = fridgeOrder.indexOf(fridgeKey);
+  if (currentIndex < 0 || targetIndex < 0 || targetIndex >= fridgeOrder.length ||
+      currentIndex === targetIndex) return;
+
+  fridgeOrder.splice(currentIndex, 1);
+  fridgeOrder.splice(targetIndex, 0, fridgeKey);
+  renderFridgeOrder();
+  saveFridgeOrder();
+}
+
+renderFridgeOrder();
 
 // Render counts and matching products together so every product is visited once.
 function renderInventory() {
@@ -725,15 +775,99 @@ searchInput.onkeydown = function (event) {
   }
 };
 
-document.querySelectorAll('.tab').forEach(function (button) {
-  button.onclick = function () {
-    activeFridge = button.dataset.t;
-    updateActiveFridgeTab();
-    searchInput.value = searchByFridge[activeFridge];
-    newCategoryInput.value = '';
-    renderCategories('');
-    renderInventory();
+var tabDragState = null;
+var suppressTabClick = false;
+
+tabContainer.addEventListener('click', function (event) {
+  var button = event.target.closest('.tab');
+  if (!button) return;
+  if (suppressTabClick) {
+    suppressTabClick = false;
+    event.preventDefault();
+    return;
+  }
+
+  activeFridge = button.dataset.t;
+  updateActiveFridgeTab();
+  searchInput.value = searchByFridge[activeFridge];
+  newCategoryInput.value = '';
+  renderCategories('');
+  renderInventory();
+});
+
+tabContainer.addEventListener('keydown', function (event) {
+  var button = event.target.closest('.tab');
+  if (!button || !event.altKey ||
+      (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight')) return;
+
+  var targetIndex = fridgeOrder.indexOf(button.dataset.t) +
+    (event.key === 'ArrowLeft' ? -1 : 1);
+  if (targetIndex < 0 || targetIndex >= fridgeOrder.length) return;
+
+  event.preventDefault();
+  moveFridgeTabToIndex(button.dataset.t, targetIndex);
+  tabContainer.querySelector('[data-t="' + button.dataset.t + '"]').focus();
+});
+
+tabContainer.addEventListener('pointerdown', function (event) {
+  var button = event.target.closest('.tab');
+  if (!button || event.button !== 0) return;
+
+  tabDragState = {
+    button: button,
+    key: button.dataset.t,
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    dragging: false
   };
+});
+
+document.addEventListener('pointermove', function (event) {
+  if (!tabDragState || event.pointerId !== tabDragState.pointerId) return;
+  if (!tabDragState.dragging) {
+    var distance = Math.hypot(event.clientX - tabDragState.startX, event.clientY - tabDragState.startY);
+    if (distance < 8) return;
+    tabDragState.dragging = true;
+    tabContainer.classList.add('is-dragging');
+    tabDragState.button.classList.add('dragging');
+  }
+
+  var targetElement = document.elementFromPoint(event.clientX, event.clientY);
+  var targetButton = targetElement && targetElement.closest('.tab');
+  tabContainer.querySelectorAll('.tab').forEach(function (button) {
+    button.classList.toggle('drop-target', button === targetButton && button !== tabDragState.button);
+  });
+  event.preventDefault();
+});
+
+function finishTabDrag(event) {
+  if (!tabDragState || event.pointerId !== tabDragState.pointerId) return;
+  var dragState = tabDragState;
+
+  if (dragState.dragging) {
+    var targetElement = document.elementFromPoint(event.clientX, event.clientY);
+    var targetButton = targetElement && targetElement.closest('.tab');
+    if (targetButton && targetButton !== dragState.button) {
+      reorderFridgeTab(dragState.key, targetButton.dataset.t);
+    }
+    suppressTabClick = true;
+    window.setTimeout(function () { suppressTabClick = false; }, 0);
+  }
+
+  dragState.button.classList.remove('dragging');
+  tabContainer.classList.remove('is-dragging');
+  tabContainer.querySelectorAll('.tab').forEach(function (button) {
+    button.classList.remove('drop-target');
+  });
+  tabDragState = null;
+}
+
+document.addEventListener('pointerup', finishTabDrag);
+document.addEventListener('pointercancel', finishTabDrag);
+
+tabContainer.querySelectorAll('.tab').forEach(function (button) {
+  button.setAttribute('aria-keyshortcuts', 'Alt+ArrowLeft Alt+ArrowRight');
 });
 
 document.getElementById('chips').onclick = function (event) {
