@@ -487,10 +487,10 @@ inventoryBody.addEventListener('focusin', function (event) {
 });
 
 // Quantities and maxima can both be edited directly from a product row.
-inventoryBody.addEventListener('change', function (event) {
+function updateQuantityInput(event) {
   var isQuantity = event.target.classList.contains('qi');
   var isMaximum = event.target.classList.contains('mx');
-  if (!isQuantity && !isMaximum) return;
+  if (!isQuantity && !isMaximum) return false;
 
   var item = inventory[activeFridge][Number(event.target.dataset.i)];
   var value = parseInt(String(event.target.value).replace(/\D/g, ''), 10);
@@ -500,6 +500,19 @@ inventoryBody.addEventListener('change', function (event) {
     item.q = isNaN(value) ? 0 : Math.min(value, 9999);
     item.ok = item.q > 0;
   }
+
+  return true;
+}
+
+inventoryBody.addEventListener('input', function (event) {
+  if (!updateQuantityInput(event)) return;
+  inventory.updated = Date.now();
+  inventory.dirty = true;
+  saveInventory(true);
+});
+
+inventoryBody.addEventListener('change', function (event) {
+  if (!updateQuantityInput(event)) return;
 
   saveInventory();
   renderInventory();
