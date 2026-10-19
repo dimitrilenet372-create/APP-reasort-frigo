@@ -72,8 +72,6 @@ if (!data || typeof data !== "object") {
   const stockKeys = new Set(stock.map(item => normalizeName(item.n)));
 
   const refill = [...bar, ...kitchen].filter(needsRestock);
-  refill.sort((left, right) => Number(isFeaturedCategory(right)) - Number(isFeaturedCategory(left)));
-  const featuredRefill = refill.filter(isFeaturedCategory);
   const buy = [];
   const seen = new Set();
   for (const item of stock) {
@@ -95,7 +93,7 @@ if (!data || typeof data !== "object") {
   columns.topAlignContent();
   if (family === "small") columns.layoutVertically();
 
-  const addColumn = (name, color, items, formatItem = label) => {
+  const addColumn = (name, color, items) => {
     const column = columns.addStack();
     column.layoutVertically();
     const heading = column.addText(name + " (" + items.length + ")");
@@ -103,35 +101,58 @@ if (!data || typeof data !== "object") {
     heading.textColor = color;
     column.addSpacer(3);
 
-    if (!items.length) {
+    if (!items.length && name.indexOf("remplir") < 0) {
       const empty = column.addText("✅ Rien");
       empty.font = Font.systemFont(fontSize);
       empty.textOpacity = 0.7;
     }
 
-    items.slice(0, maxLines).forEach(item => {
-      const text = column.addText("• " + formatItem(item));
-      text.font = Font.systemFont(fontSize);
-      text.lineLimit = 1;
-    });
+    let visibleCount = 0;
+    const addGroup = (groupName, groupItems) => {
+      const groupHeading = column.addText(groupName);
+      groupHeading.font = Font.semiboldSystemFont(11);
+      groupHeading.textOpacity = 0.75;
 
-    if (items.length > maxLines) {
-      const more = column.addText("+ " + (items.length - maxLines) + " autres");
+      if (!groupItems.length) {
+        const empty = column.addText("✅ Rien à remplir");
+        empty.font = Font.systemFont(fontSize);
+        empty.textOpacity = 0.7;
+        return;
+      }
+
+      const remaining = maxLines - visibleCount;
+      groupItems.slice(0, remaining).forEach(item => {
+        const text = column.addText("• " + label(item));
+        text.font = Font.systemFont(fontSize);
+        text.lineLimit = 1;
+        visibleCount++;
+      });
+    };
+
+    if (name.indexOf("remplir") >= 0) {
+      const iceCream = items.filter(item => normalizeName(item.g) === "glaces");
+      const pastries = items.filter(item => normalizeName(item.g) === "patisserie");
+      const otherItems = items.filter(item => !isFeaturedCategory(item));
+      addGroup("🍦 Glaces", iceCream);
+      addGroup("🍰 Pâtisseries", pastries);
+      if (family !== "small" && otherItems.length) addGroup("🍹 Autres", otherItems);
+    } else {
+      items.slice(0, maxLines).forEach(item => {
+        const text = column.addText("• " + label(item));
+        text.font = Font.systemFont(fontSize);
+        text.lineLimit = 1;
+      });
+    }
+
+    if (items.length > visibleCount && visibleCount >= maxLines) {
+      const more = column.addText("+ " + (items.length - visibleCount) + " autres");
       more.font = Font.systemFont(11);
       more.textOpacity = 0.6;
     }
   };
 
-  if (family === "small") {
-    const visibleRefill = featuredRefill.length ? featuredRefill : refill;
-    const heading = featuredRefill.length ? "🍦 Glaces & pâtisseries" : "🍹🍳 À remplir";
-    addColumn(heading, Color.orange(), visibleRefill, item =>
-      isFeaturedCategory(item) ? item.g + " · " + label(item) : label(item)
-    );
-  } else {
-    addColumn("🍹🍳 À remplir", Color.orange(), refill, item =>
-      isFeaturedCategory(item) ? item.g + " · " + label(item) : label(item)
-    );
+  addColumn("🍹🍳 À remplir", Color.orange(), refill);
+  if (family !== "small") {
     columns.addSpacer(14);
     addColumn("🛒 À racheter", Color.red(), buy);
   }
