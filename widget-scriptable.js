@@ -151,7 +151,7 @@ const fontSize = family === "large" ? 13 : 12;
 
 const widget = new ListWidget();
 widget.backgroundColor = Color.dynamic(new Color("#ffffff"), new Color("#1b2027"));
-widget.refreshAfterDate = new Date(Date.now() + 5 * 60 * 1000);
+widget.refreshAfterDate = new Date(Date.now() + 60 * 1000);
 
 const header = widget.addStack();
 header.centerAlignContent();
