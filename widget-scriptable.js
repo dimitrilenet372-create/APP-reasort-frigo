@@ -14,6 +14,7 @@ const normalizeName = value => String(value || "")
   .normalize("NFD")
   .replace(/[\u0300-\u036f]/g, "")
   .trim();
+const isFeaturedCategory = item => ["glaces", "patisserie"].includes(normalizeName(item.g));
 const level = item => {
   if (!item.ok) return "out";
   const quantity = Number(item.q) || 0;
@@ -71,6 +72,8 @@ if (!data || typeof data !== "object") {
   const stockKeys = new Set(stock.map(item => normalizeName(item.n)));
 
   const refill = [...bar, ...kitchen].filter(needsRestock);
+  refill.sort((left, right) => Number(isFeaturedCategory(right)) - Number(isFeaturedCategory(left)));
+  const featuredRefill = refill.filter(isFeaturedCategory);
   const buy = [];
   const seen = new Set();
   for (const item of stock) {
@@ -92,7 +95,7 @@ if (!data || typeof data !== "object") {
   columns.topAlignContent();
   if (family === "small") columns.layoutVertically();
 
-  const addColumn = (name, color, items) => {
+  const addColumn = (name, color, items, formatItem = label) => {
     const column = columns.addStack();
     column.layoutVertically();
     const heading = column.addText(name + " (" + items.length + ")");
@@ -107,7 +110,7 @@ if (!data || typeof data !== "object") {
     }
 
     items.slice(0, maxLines).forEach(item => {
-      const text = column.addText("• " + label(item));
+      const text = column.addText("• " + formatItem(item));
       text.font = Font.systemFont(fontSize);
       text.lineLimit = 1;
     });
@@ -119,10 +122,19 @@ if (!data || typeof data !== "object") {
     }
   };
 
-  addColumn("🍹🍳 À remplir", Color.orange(), refill);
-  if (family === "small") columns.addSpacer(6);
-  else columns.addSpacer(14);
-  addColumn("🛒 À racheter", Color.red(), buy);
+  if (family === "small") {
+    const visibleRefill = featuredRefill.length ? featuredRefill : refill;
+    const heading = featuredRefill.length ? "🍦 Glaces & pâtisseries" : "🍹🍳 À remplir";
+    addColumn(heading, Color.orange(), visibleRefill, item =>
+      isFeaturedCategory(item) ? item.g + " · " + label(item) : label(item)
+    );
+  } else {
+    addColumn("🍹🍳 À remplir", Color.orange(), refill, item =>
+      isFeaturedCategory(item) ? item.g + " · " + label(item) : label(item)
+    );
+    columns.addSpacer(14);
+    addColumn("🛒 À racheter", Color.red(), buy);
+  }
 }
 
 if (config.runsInWidget) Script.setWidget(widget);
