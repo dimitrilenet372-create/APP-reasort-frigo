@@ -168,24 +168,17 @@ function renderLastModified() {
   }
 
   var minutes = Math.max(0, Math.floor((Date.now() - updated) / 60000));
-  var relative;
-  var rtf = new Intl.RelativeTimeFormat(translate('locale'), { numeric: 'auto' });
-  if (minutes < 1) relative = translate('relNow');
-  else if (minutes < 60) relative = rtf.format(-minutes, 'minute');
-  else if (minutes < 48 * 60) relative = rtf.format(-Math.round(minutes / 60), 'hour');
-  else relative = rtf.format(-Math.round(minutes / 1440), 'day');
-
   var exact = new Date(updated).toLocaleString(translate('locale'), {
-    weekday: 'short', day: 'numeric', month: 'short',
+    day: '2-digit', month: '2-digit',
     hour: '2-digit', minute: '2-digit'
-  });
+  }).replace(',', '');
   var who = inventory.updatedBy
     ? translate('lastModifiedBy').replace('{name}', inventory.updatedBy)
     : '';
   var stale = minutes > 24 * 60;
 
   label.textContent = translate('lastModified')
-    .replace('{when}', exact + ' (' + relative + ')')
+    .replace('{when}', exact)
     .replace('{who}', who) + (stale ? translate('lastModifiedStale') : '');
   label.classList.toggle('warn', stale);
 }
