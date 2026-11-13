@@ -24,7 +24,7 @@
 </head>
 <body class="loading">
   <main>
-    <h1>Frigos de l'esquisse <small class="sync" id="sync">⏳ Chargement…</small></h1>
+    <h1>Frigos de l'esquisse <small class="sync" id="sync">⏳ Chargement…</small><small class="lastmod" id="lastmod"></small></h1>
     <div class="top-actions">
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Activer le mode sombre" title="Activer le mode sombre">☀</button>
     </div>
@@ -53,6 +53,12 @@
             <div class="row">
               <input id="ns" placeholder="Nouveau magasin…" autocomplete="off">
               <button class="btn" id="nsb">+</button>
+            </div>
+          </details>
+          <details>
+            <summary id="who-summary">👤 Mon prénom</summary>
+            <div class="row">
+              <input id="who" placeholder="ex. Marie" autocomplete="off" maxlength="30">
             </div>
           </details>
           <details class="history">

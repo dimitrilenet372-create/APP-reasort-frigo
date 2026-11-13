@@ -49,6 +49,7 @@ function applyRemoteInventory(remoteData) {
       ? window.inventory.fridgeOrder.slice()
       : remoteData.fridgeOrder.slice(),
     updated: remoteData.updated || 0,
+    updatedBy: remoteData.updatedBy || '',
     stockLimitVersion: Number(remoteData.stockLimitVersion) || 0,
     dirty: false
   };

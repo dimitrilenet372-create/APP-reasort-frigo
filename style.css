@@ -176,6 +176,8 @@
     .s { width: 100%; margin-bottom: 10px; }
     select { flex: none; max-width: 44%; min-width: 0; padding: 12px 8px; border-radius: 4px; font-size: 16px; }
     .sync { display: block; margin-top: 2px; color: var(--mu); font-size: 12px; font-weight: 600; }
+    .lastmod { display: block; margin-top: 2px; color: var(--mu); font-size: 13px; font-weight: 600; }
+    .lastmod.warn { color: var(--low); }
     .layout { transition: opacity .2s; }
     body.loading .layout { opacity: .35; pointer-events: none; }
 

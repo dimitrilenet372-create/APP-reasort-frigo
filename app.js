@@ -145,9 +145,58 @@ var newCategoryInput = document.getElementById('nc');
 
 normalizeStockLimits();
 
+var USER_NAME_KEY = 'frigos-user-name';
+
+function getUserName() {
+  try {
+    return (localStorage.getItem(USER_NAME_KEY) || '').trim();
+  } catch (error) {
+    return '';
+  }
+}
+
+// Show when the shared inventory was last changed, and by whom when a name is set.
+function renderLastModified() {
+  var label = document.getElementById('lastmod');
+  if (!label) return;
+  var updated = Number(inventory.updated) || 0;
+  label.classList.remove('warn');
+
+  if (!updated) {
+    label.textContent = translate('lastModifiedNone');
+    return;
+  }
+
+  var minutes = Math.max(0, Math.floor((Date.now() - updated) / 60000));
+  var relative;
+  var rtf = new Intl.RelativeTimeFormat(translate('locale'), { numeric: 'auto' });
+  if (minutes < 1) relative = translate('relNow');
+  else if (minutes < 60) relative = rtf.format(-minutes, 'minute');
+  else if (minutes < 48 * 60) relative = rtf.format(-Math.round(minutes / 60), 'hour');
+  else relative = rtf.format(-Math.round(minutes / 1440), 'day');
+
+  var exact = new Date(updated).toLocaleString(translate('locale'), {
+    weekday: 'short', day: 'numeric', month: 'short',
+    hour: '2-digit', minute: '2-digit'
+  });
+  var who = inventory.updatedBy
+    ? translate('lastModifiedBy').replace('{name}', inventory.updatedBy)
+    : '';
+  var stale = minutes > 24 * 60;
+
+  label.textContent = translate('lastModified')
+    .replace('{when}', exact + ' (' + relative + ')')
+    .replace('{who}', who) + (stale ? translate('lastModifiedStale') : '');
+  label.classList.toggle('warn', stale);
+}
+
+window.renderLastModified = renderLastModified;
+window.setInterval(renderLastModified, 60000);
+
 function saveInventory(localOnly) {
   if (!localOnly) {
     inventory.updated = Date.now();
+    inventory.updatedBy = getUserName();
     inventory.dirty = true;
   }
   try {
@@ -158,6 +207,7 @@ function saveInventory(localOnly) {
 
 function recordHistory(entry) {
   entry.at = Date.now();
+  entry.by = getUserName();
   entry.undone = false;
   inventory.history.push(entry);
   if (inventory.history.length > 50) inventory.history.shift();
@@ -213,7 +263,7 @@ function renderHistory() {
       : '';
     return '<li class="history-item' + (entry.undone ? ' undone' : '') + '"><span>' +
       formatHistoryEntry(entry) + '</span><small>' + escapeHtml(translate(entry.fridge)) +
-      ' · ' + time + '</small>' + state + '</li>';
+      ' · ' + time + (entry.by ? ' · ' + escapeHtml(entry.by) : '') + '</small>' + state + '</li>';
   }).join('') || '<li class="history-empty">' + translate('historyEmpty') + '</li>';
 
   undoButton.textContent = translate('historyUndo');
@@ -531,6 +581,7 @@ function renderInventory() {
 
   document.getElementById('sc').innerHTML = translate('shoppingList') +
     '<small>' + shoppingMessage + '</small>';
+  renderLastModified();
 }
 
 function renderShops() {
@@ -930,6 +981,14 @@ document.getElementById('ns').onkeydown = function (event) {
   if (event.key === 'Enter') addShop();
 };
 
+var userNameInput = document.getElementById('who');
+userNameInput.value = getUserName();
+userNameInput.onchange = function () {
+  try {
+    localStorage.setItem(USER_NAME_KEY, userNameInput.value.trim());
+  } catch (error) {}
+};
+
 function formatDate() {
   return new Date().toLocaleDateString(translate('locale'), {
     weekday: 'long',
@@ -1043,6 +1102,8 @@ function applyLanguage() {
   document.title = translate('appTitle');
   document.querySelector('h1').childNodes[0].nodeValue = translate('heading') + ' ';
   document.getElementById('history-summary').textContent = translate('historyTitle');
+  document.getElementById('who-summary').textContent = translate('nameSummary');
+  document.getElementById('who').placeholder = translate('namePlaceholder');
 
   document.querySelectorAll('.tab').forEach(function (button) {
     button.textContent = translate(button.dataset.t);
